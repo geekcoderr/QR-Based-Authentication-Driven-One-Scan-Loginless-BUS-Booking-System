@@ -6,7 +6,7 @@ const cors = require('cors'); // Import cors to handle Cross-Origin Resource Sha
 const app = express();
 const PORT = 8000;
 
-urlData = 'mongodb://13.233.85.35:27017/qr';
+urlData = 'mongodb://13.127.195.20:27017/qr';
 mongoose.connect(urlData, { useNewUrlParser: true, useUnifiedTopology: true })
     .then(() => console.log('MongoDB connected'))
     .catch((err) => console.log("Error connecting to MongoDB", err));

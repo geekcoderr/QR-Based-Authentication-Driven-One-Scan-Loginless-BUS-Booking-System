@@ -85,7 +85,7 @@
         // If found your QR code
         function onScanSuccess(decodeText, decodeResult) {
             scanResultDiv.innerText = decodeText;
-            axios.post('http://13.233.85.35:8000/post', {url:decodeText})
+            axios.post('http://localhost:8000/post', {url:decodeText})
             .then(response => {
                 console.log('Response:', response.data);
                 // Handle response here 

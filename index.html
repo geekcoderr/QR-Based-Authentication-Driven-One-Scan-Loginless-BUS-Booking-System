@@ -1,9 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>One-Click Book</title>
+    <script src="https://cdn.jsdelivr.net/npm/jsqr/dist/jsQR.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
 
     <style>
         /* style.css file */
@@ -53,59 +57,86 @@
             color: #fff;
             font-size: 18px;
         }
-
     </style>
 </head>
+
 <body>
-<div class="container">
-    <h1>One-Scan Book</h1>
-    <div class="section">
-        <div id="my-qr-reader"></div>
-        <div id="scan-result"></div>
+    <div class="container">
+        <h1>One-Scan Book</h1>
+        <div class="section">
+            <div id="my-qr-reader"></div>
+            <div id="scan-result"></div>
+        </div>
     </div>
-</div>
 
-<script src="https://unpkg.com/html5-qrcode"></script>
-<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
-<script>
-    function domReady(fn) {
-        if (
-            document.readyState === "complete" ||
-            document.readyState === "interactive"
-        ) {
-            setTimeout(fn, 1000);
-        } else {
-            document.addEventListener("DOMContentLoaded", fn);
-        }
-    }
-
-    domReady(function () {
-        const scanResultDiv = document.getElementById('scan-result');
-
-        // If found your QR code
-        function onScanSuccess(decodeText, decodeResult) {
-            scanResultDiv.innerText = decodeText;
-            axios.post('http://13.233.85.35:8000/post', {url:decodeText})
-            .then(response => {
-                console.log('Response:', response.data);
-                // Handle response here 
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                // Handle error here
-            });
-            console.log(decodeText);
-            
+    <script>
+        function domReady(fn) {
+            if (
+                document.readyState === "complete" ||
+                document.readyState === "interactive"
+            ) {
+                setTimeout(fn, 1000);
+            } else {
+                document.addEventListener("DOMContentLoaded", fn);
+            }
         }
 
-        let htmlscanner = new Html5QrcodeScanner(
-            "my-qr-reader",
-            { fps: 10, qrbos: 250 }
-        );
+        domReady(function () {
+            const scanResultDiv = document.getElementById('scan-result');
+            const canvas = document.createElement('canvas');
+            const context = canvas.getContext('2d');
+            let isScanning = false;
 
-        htmlscanner.render(onScanSuccess);
-    });
+            // Initialize camera access
+            const constraints = { video: { facingMode: 'environment' } };
 
-</script>
+            navigator.mediaDevices.getUserMedia(constraints)
+                .then((stream) => {
+                    const video = document.createElement('video');
+                    video.srcObject = stream;
+                    video.addEventListener('loadedmetadata', () => {
+                        video.play();
+                        scanQRCode(video);
+                    });
+                })
+                .catch((error) => {
+                    console.error('Error accessing camera:', error);
+                });
+
+            // Scan QR code
+            function scanQRCode(video) {
+                if (!isScanning) {
+                    isScanning = true;
+                    canvas.width = video.videoWidth;
+                    canvas.height = video.videoHeight;
+                    context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+                    const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+                    const code = jsQR(imageData.data, imageData.width, imageData.height);
+
+                    if (code) {
+                        scanResultDiv.innerText = code.data;
+                        // Perform further actions here
+                        axios.post('http://13.127.195.20:8000/post', { url: code.data })
+                            .then(response => {
+                                console.log('Response:', response.data);
+                                // Handle response here 
+                            })
+                            .catch(error => {
+                                console.error('Error:', error);
+                                // Handle error here
+                            });
+
+                        console.log('QR code decoded:', code.data);
+                    }
+
+                    isScanning = false;
+                    requestAnimationFrame(() => scanQRCode(video));
+                }
+            }
+        });
+
+    </script>
 </body>
+
 </html>
