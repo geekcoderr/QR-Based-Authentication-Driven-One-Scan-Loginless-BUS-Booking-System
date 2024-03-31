@@ -87,7 +87,7 @@
         function onScanSuccess(decodeText, decodeResult) {
             scanResultDiv.innerText = decodeText;
             console.log(decodeText);
-            axios.post('http://52.66.41.0:8000/post', {url:decodeText})
+            axios.post('http://3.108.194.101:8000/post', {url:decodeText})
             .then(response => {
                 console.log('Response:', response.data);
                 // Handle response here 
