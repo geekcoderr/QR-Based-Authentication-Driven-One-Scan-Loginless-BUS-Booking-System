@@ -6,46 +6,6 @@
     <link rel="stylesheet" href="style.css">
     <title>QR Code Scanner / Reader</title>
 
-    <script>
-        // script.js file
-
-        function domReady(fn) {
-            if (
-                document.readyState === "complete" ||
-                document.readyState === "interactive"
-            ) {
-                setTimeout(fn, 1000);
-            } else {
-                document.addEventListener("DOMContentLoaded", fn);
-            }
-        }
-
-        domReady(function () {
-
-            // If found your QR code
-            function onScanSuccess(decodeText, decodeResult) {
-                console.log(decodeText);
-                axios.post('http://52.66.41.0:8000/post', {url:decodeText})
-                .then(response => {
-                    console.log('Response:', response.data);
-                    // Handle response here 
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    // Handle error here
-                });
-                
-            }
-
-            let htmlscanner = new Html5QrcodeScanner(
-                "my-qr-reader",
-                { fps: 10, qrbos: 250 }
-            );
-            htmlscanner.render(onScanSuccess);
-        });
-
-    </script>
-
     <style>
         /* style.css file */
         body {
@@ -136,6 +96,54 @@
         </div>
     </div>
 </div>
+
 <script src="https://unpkg.com/html5-qrcode"></script>
+<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+<script>
+    function domReady(fn) {
+        if (
+            document.readyState === "complete" ||
+            document.readyState === "interactive"
+        ) {
+            setTimeout(fn, 1000);
+        } else {
+            document.addEventListener("DOMContentLoaded", fn);
+        }
+    }
+
+    domReady(function () {
+
+        // If found your QR code
+        function onScanSuccess(decodeText, decodeResult) {
+            console.log(decodeText);
+            axios.post('http://52.66.41.0:8000/post', {url:decodeText})
+            .then(response => {
+                console.log('Response:', response.data);
+                // Handle response here 
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                // Handle error here
+            });
+            
+        }
+
+        let htmlscanner = new Html5QrcodeScanner(
+            "my-qr-reader",
+            { fps: 10, qrbos: 250 }
+        );
+
+        // Add option to switch cameras
+        const switchCameraButton = document.createElement("button");
+        switchCameraButton.innerText = "Switch Camera";
+        switchCameraButton.onclick = () => {
+            htmlscanner.toggleCamera();
+        };
+        document.body.appendChild(switchCameraButton);
+
+        htmlscanner.render(onScanSuccess);
+    });
+
+</script>
 </body>
 </html>
