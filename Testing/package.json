@@ -9,7 +9,12 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "body-parser": "^1.20.2",
+    "cors": "^2.8.5",
+    "image-js": "^0.35.5",
     "jsqr": "^1.4.0",
+    "mongoose": "^8.2.4",
+    "node-webcam": "^0.8.2",
     "nodemon": "^3.1.0",
     "qrcode": "^1.5.3"
   }

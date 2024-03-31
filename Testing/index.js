@@ -1,28 +1,68 @@
-const qr = require('qrcode');
 const express = require('express');
-const PORT = 8000;
+const mongoose = require('mongoose');
+const bodyParser = require('body-parser'); // Import bodyParser to parse request bodies
+const cors = require('cors'); // Import cors to handle Cross-Origin Resource Sharing
+
 const app = express();
+const PORT = 8000;
 
-app.get('/', (req, res) => {
-    const data = 'https://www.linkedin.com/in/nishant-maheshwari-geekcoderr';
-    const options = {
-        errorCorrectionLevel: 'H',
-        type: 'png',
-        quality: 0.92,
-        margin: 1
-    };
+urlData = 'mongodb://localhost:27017/qr';
+mongoose.connect(urlData, { useNewUrlParser: true, useUnifiedTopology: true })
+    .then(() => console.log('MongoDB connected'))
+    .catch((err) => console.log("Error connecting to MongoDB", err));
 
-    // Generate QR code as a data URI
-    qr.toDataURL(data, options, (err, url) => {
-        if (err) {
-            res.status(500).send('Internal Server Error');
-            return;
-        }
-
-        // Render the QR code as an image
-        console.log(url);
-        res.send(`<img src="${url}" alt="QR Code">`);
-    });
+const urlSchema = new mongoose.Schema({
+    url: {
+        type: String,
+        required: true,
+    },
 });
 
-app.listen(PORT, () => console.log('Server is running on port ' + PORT));
+const Url = mongoose.model("url", urlSchema);
+
+// Middleware to parse JSON request bodies
+app.use(bodyParser.json());
+
+// Middleware to handle Cross-Origin Resource Sharing
+app.use(cors());
+
+app.get('/', async (req, res) => {
+    try {
+        const existingUrl = await Url.findOne();
+        if (!existingUrl) {
+            return res.status(404).send("No URL found");
+        }
+        return res.json(existingUrl);
+    } catch (err) {
+        console.error("Error getting URL:", err);
+        return res.status(500).send("Internal Server Error");
+    }
+});
+
+// Modified POST endpoint to simply add data to the database
+// Modified POST endpoint to create or update a single entry
+app.post('/post', async (req, res) => {
+    try {
+        // Check if there's an existing URL record in the database
+        let existingUrl = await Url.findOne();
+
+        if (!existingUrl) {
+            // If no existing URL found, create a new one
+            existingUrl = await Url.create({ url: req.body.url });
+        } else {
+            // If existing URL found, update its URL
+            existingUrl.url = req.body.url;
+            await existingUrl.save();
+        }
+
+        // Respond with the updated or newly created URL object
+        return res.status(200).json(existingUrl);
+    } catch (err) {
+        // Handle errors
+        console.error("Error creating/updating URL:", err);
+        return res.status(500).send("Internal Server Error");
+    }
+});
+
+
+app.listen(PORT, console.log('Server started'));
