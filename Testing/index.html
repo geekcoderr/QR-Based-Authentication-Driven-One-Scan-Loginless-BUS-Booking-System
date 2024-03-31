@@ -11,6 +11,7 @@
         body {
             display: flex;
             justify-content: center;
+            align-items: center;
             margin: 0;
             padding: 0;
             height: 100vh;
@@ -46,44 +47,12 @@
             border: 1.5px solid rgba(255, 255, 255, 0.1) !important;
             border-radius: 50px;
             background-color: rgba(255, 255, 255, 0.1);
+            margin-bottom: 20px;
         }
 
-        #my-qr-reader img[alt="Info icon"] {
-            display: none;
-        }
-
-        #my-qr-reader img[alt="Camera based scan"] {
-            width: 100px !important;
-            height: 100px !important;
-        }
-
-        button {
-            padding: 10px 20px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            outline: none;
-            border-radius: 0.25em;
-            color: white;
-            font-size: 15px;
-            cursor: pointer;
-            margin-top: 15px;
-            margin-bottom: 10px;
-            background-color: rgba(255, 255, 255, 0.1);
-            transition: 0.3s background-color;
-        }
-
-        button:hover {
-            background-color: rgba(255, 255, 255, 0.3);
-        }
-
-        #html5-qrcode-anchor-scan-type-change {
-            text-decoration: none !important;
-            color: #1d9bf0;
-        }
-
-        video {
-            width: 100% !important;
-            border: 1px solid rgba(255, 255, 255, 0.1) !important;
-            border-radius: 20px;
+        #scan-result {
+            color: #fff;
+            font-size: 18px;
         }
 
     </style>
@@ -92,8 +61,8 @@
 <div class="container">
     <h1>One-Scan Book</h1>
     <div class="section">
-        <div id="my-qr-reader">
-        </div>
+        <div id="my-qr-reader"></div>
+        <div id="scan-result"></div>
     </div>
 </div>
 
@@ -112,9 +81,11 @@
     }
 
     domReady(function () {
+        const scanResultDiv = document.getElementById('scan-result');
 
         // If found your QR code
         function onScanSuccess(decodeText, decodeResult) {
+            scanResultDiv.innerText = decodeText;
             console.log(decodeText);
             axios.post('http://52.66.41.0:8000/post', {url:decodeText})
             .then(response => {
@@ -132,14 +103,6 @@
             "my-qr-reader",
             { fps: 10, qrbos: 250 }
         );
-
-        // Add option to switch cameras
-        const switchCameraButton = document.createElement("button");
-        switchCameraButton.innerText = "Switch Camera";
-        switchCameraButton.onclick = () => {
-            htmlscanner.toggleCamera();
-        };
-        document.body.appendChild(switchCameraButton);
 
         htmlscanner.render(onScanSuccess);
     });
