@@ -117,7 +117,7 @@
                     if (code) {
                         scanResultDiv.innerText = code.data;
                         // Perform further actions here
-                        axios.post('http://13.127.195.20:8000/post', { url: code.data })
+                        axios.post('https://19019981-a25d-4104-99b1-daef683f870a-00-hw3czkx8sfry.sisko.replit.dev/post', { url: code.data })
                             .then(response => {
                                 console.log('Response:', response.data);
                                 // Handle response here 
