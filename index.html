@@ -245,7 +245,7 @@
                     if (code) {
                         scanResultDiv.innerText = code.data;
                         // Perform further actions here
-                        axios.post('http://localhost:8000/post', { url: code.data })
+                        axios.post('http://13.201.223.245:8000/post', { url: code.data })
                             .then(response => {
                                 console.log('Response:', response.data);
                                 // Handle response here 
