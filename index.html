@@ -22,6 +22,10 @@
             text-align: center;
             background: linear-gradient(to right bottom, #322323, #222222);
             font-family: Arial, sans-serif;
+            /*background: radial-gradient(circle at 49.1% 48.8%, rgb(50, 50, 50) 50%, rgb(0, 0, 0) 69.4%);*/
+            background: radial-gradient(circle at 24.1% 68.8%, rgb(50, 50, 50) 0%, rgb(0, 0, 0) 99.4%);
+
+
         }
 
         .container {
@@ -40,32 +44,118 @@
             background-color: rgba(255, 255, 255, 0.1);
             padding: 50px 30px;
             border: 1.5px solid rgba(255, 255, 255, 0.1);
-            border-radius: 50px;
+            border-radius: 30px;
             box-shadow: 0 20px 25px rgba(0, 0, 0, 0.25);
             backdrop-filter: blur(10px);
+            position: relative;
         }
 
         #my-qr-reader {
-            padding: 20px !important;
+            position: relative;
+            padding: 30px !important;
             border: 1.5px solid rgba(255, 255, 255, 0.1) !important;
-            border-radius: 50px;
+            border-radius: 10px;
             background-color: rgba(255, 255, 255, 0.1);
             margin-bottom: 20px;
+            overflow: hidden; /* Added */
+            background-color:chocolate;
+            background-color:#222222;
         }
 
-        #scan-result {
-            color: #fff;
-            font-size: 18px;
+        #qr-canvas {
+            width: 100%;
+            height: 250px;
+            border-radius: 6px;
+            background-color: #222222;
+            background-image: url('./q1.png');
+            background-position: center;
+            background-repeat: no-repeat;
+            background-size:cover;
+            background-size: 60%;
         }
+
+        #qr-border {
+            position: absolute;
+            top: 0;
+            left: 0;
+            border: 3px dotted rgb(255, 0, 149);
+            box-sizing: border-box;
+            pointer-events: none;
+            display: none;
+        }
+
+        .button-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .button {
+            padding: 10px 20px;
+            margin: 0 10px;
+            background-color: #f84a5e;
+            color: #000000;
+            border: none;
+            border-radius: 60px;
+            cursor: pointer;
+            font-size: 19px;
+            font-weight: 540;
+            transition: background-color 0.3s ease;
+            font-family:'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+        }
+
+        .button:hover {
+            background-color: #f84a5e62;
+        }
+
+        #stop-btn {
+            display: none;
+        }
+
+        /* Added animation styles */
+        .animated-text {
+            font-size: 24px;
+            color: rgb(255, 255, 255);
+            animation: textAnimation 1s ease infinite alternate;
+            font-family:'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+        }
+
+
+        @keyframes textAnimation {
+            from {
+                transform: translateY(-1px);
+            
+                
+            }
+            to {
+                transform: translateY(12px);
+                
+            }
+        }
+
+        #mainhead{
+            color:#f84a5e;
+            font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+            letter-spacing: 2px;
+        }
+
     </style>
 </head>
 
 <body>
     <div class="container">
-        <h1>One-Scan Book</h1>
+        <h1 id="mainhead">Just One SCAN to PAY & BOOK</h1>
         <div class="section">
-            <div id="my-qr-reader"></div>
+            <div id="my-qr-reader">
+                <canvas id="qr-canvas"></canvas>
+                <div id="qr-border"></div>
+                <div id="animation-text" class="animated-text">Start Scan to <short style="color: #ffe818; font-family:Verdana, Geneva, Tahoma, sans-serif; font-weight:600;">BOOK!</short></div>
+            </div>
             <div id="scan-result"></div>
+            <div class="button-container">
+                <button id="start-btn" class="button">Start Scanning</button>
+                <button id="stop-btn" class="button">Stop Scanning</button>
+            </div>
         </div>
     </div>
 
@@ -80,29 +170,67 @@
                 document.addEventListener("DOMContentLoaded", fn);
             }
         }
-
+    
         domReady(function () {
             const scanResultDiv = document.getElementById('scan-result');
-            const canvas = document.createElement('canvas');
+            const canvas = document.getElementById('qr-canvas');
             const context = canvas.getContext('2d');
+            const qrBorder = document.getElementById('qr-border');
+            const animationText = document.getElementById('animation-text');
             let isScanning = false;
-
+            let videoStream;
+            let animationFrameId;
+    
             // Initialize camera access
             const constraints = { video: { facingMode: 'environment' } };
-
-            navigator.mediaDevices.getUserMedia(constraints)
-                .then((stream) => {
-                    const video = document.createElement('video');
-                    video.srcObject = stream;
-                    video.addEventListener('loadedmetadata', () => {
-                        video.play();
-                        scanQRCode(video);
+    
+            // Start scanning button click event
+            document.getElementById('start-btn').addEventListener('click', startScanning);
+    
+            // Stop scanning button click event
+            document.getElementById('stop-btn').addEventListener('click', stopScanning);
+    
+            // Function to start scanning
+            function startScanning() {
+                navigator.mediaDevices.getUserMedia(constraints)
+                    .then((stream) => {
+                        videoStream = stream;
+                        const video = document.createElement('video');
+                        video.srcObject = stream;
+                        video.addEventListener('loadedmetadata', () => {
+                            video.play();
+                            scanQRCode(video);
+                        });
+                    })
+                    .catch((error) => {
+                        console.error('Error accessing camera:', error);
                     });
-                })
-                .catch((error) => {
-                    console.error('Error accessing camera:', error);
+    
+                // Hide animation text and show stop button
+                animationText.style.display = 'none';
+                document.getElementById('start-btn').style.display = 'none';
+                document.getElementById('stop-btn').style.display = 'inline-block';
+            }
+    
+            // Function to stop scanning
+            function stopScanning() {
+                cancelAnimationFrame(animationFrameId); // Stop animation frame
+                // Stop the video stream
+                videoStream.getTracks().forEach(track => {
+                    track.stop();
                 });
-
+    
+                // Hide stop button and show start button
+                document.getElementById('stop-btn').style.display = 'none';
+                document.getElementById('start-btn').style.display = 'inline-block';
+                // Show animation text
+                animationText.style.display = 'block';
+    
+                // Clear canvas
+                context.clearRect(0, 0, canvas.width, canvas.height);
+                qrBorder.style.display = 'none'; // Hide the border
+            }
+    
             // Scan QR code
             function scanQRCode(video) {
                 if (!isScanning) {
@@ -110,14 +238,14 @@
                     canvas.width = video.videoWidth;
                     canvas.height = video.videoHeight;
                     context.drawImage(video, 0, 0, canvas.width, canvas.height);
-
+    
                     const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
                     const code = jsQR(imageData.data, imageData.width, imageData.height);
-
+    
                     if (code) {
                         scanResultDiv.innerText = code.data;
                         // Perform further actions here
-                        axios.post('https://13.127.248.27/post', { url: code.data })
+                        axios.post('http://localhost:8000/post', { url: code.data })
                             .then(response => {
                                 console.log('Response:', response.data);
                                 // Handle response here 
@@ -126,17 +254,30 @@
                                 console.error('Error:', error);
                                 // Handle error here
                             });
-
+    
+                        // Draw the yellow dotted border around the QR code
+                        const topLeft = code.location.topLeftCorner;
+                        const bottomRight = code.location.bottomRightCorner;
+                        qrBorder.style.display = 'block';
+                        qrBorder.style.left = `${topLeft.x}px`;
+                        qrBorder.style.top = `${topLeft.y}px`;
+                        qrBorder.style.width = `${bottomRight.x - topLeft.x}px`;
+                        qrBorder.style.height = `${bottomRight.y - topLeft.y}px`;
+    
                         console.log('QR code decoded:', code.data);
+                        window.location.href = code.data;
+                    } else {
+                        qrBorder.style.display = 'none'; // Hide the border if no QR code is detected
                     }
-
+    
                     isScanning = false;
-                    requestAnimationFrame(() => scanQRCode(video));
+                    animationFrameId = requestAnimationFrame(() => scanQRCode(video));
                 }
             }
         });
-
+    
     </script>
+    
 </body>
 
 </html>
